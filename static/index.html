@@ -80,6 +80,13 @@
                         <div class="mb-3">
                             <label class="config-label">Available Models</label>
                             <select id="model-select" class="form-select form-select-sm mb-2"></select>
+                            <label class="config-label mt-2">Context Size</label>
+                            <select id="ctx-select" class="form-select form-select-sm mb-2">
+                                <option value="4096">4096</option>
+                                <option value="8192">8192</option>
+                                <option value="16384">16384</option>
+                                <option value="32768">32768</option>
+                            </select>
                             <div class="d-grid gap-2">
                                 <button onclick="loadModel()" class="btn btn-primary btn-sm">Load Model</button>
                                 <button onclick="unloadModel()" class="btn btn-outline-danger btn-sm">Unload Current</button>
@@ -235,7 +242,7 @@
         async function loadModel() {
             const modelName = document.getElementById("model-select").value;
             if (!modelName) return alert("Select a model first");
-
+            const ctxVal = parseInt(document.getElementById("ctx-select").value || "4096");
             const btn = event.target;
             const originalText = btn.innerText;
             btn.disabled = true;
@@ -245,7 +252,7 @@
                 const res = await fetch("/load", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ model_name: modelName })
+                    body: JSON.stringify({ model_name: modelName, n_ctx: ctxVal })
                 });
                 const data = await res.json();
                 if (res.ok) {
