@@ -26,7 +26,7 @@ static_dir.mkdir(exist_ok=True)
 
 class LoadModelRequest(BaseModel):
     model_name: str
-    n_ctx: Optional[int] = 32768
+    n_ctx: Optional[int] = 4096
     n_gpu_layers: Optional[int] = -1
 
 
@@ -84,7 +84,7 @@ if __name__ == "__main__":
     models = manager.list_models()
     if models:
         try:
-            manager.load_model(models[0])
+            manager.load_model(models[0], n_ctx=4096)
             print(f"Auto-loaded model: {models[0]}")
         except Exception as e:
             print(f"Failed to auto-load model: {e}")

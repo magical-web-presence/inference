@@ -19,7 +19,7 @@ class ModelManager:
             return []
         return [f for f in os.listdir(self.models_dir) if f.endswith(".gguf")]
 
-    def load_model(self, model_name: str, n_ctx: int = 32768, n_gpu_layers: int = -1) -> bool:
+    def load_model(self, model_name: str, n_ctx: int = 4096, n_gpu_layers: int = -1) -> bool:
         with self._lock:
             if self.current_model_name == model_name:
                 return True
