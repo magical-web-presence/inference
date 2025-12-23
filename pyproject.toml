@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qwen-grammar-extraction"
+version = "0.1.0"
+description = "Grammar-Restricted Document Extraction with Qwen3-8B"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "llama-cpp-python",
+    "huggingface_hub",
+    "pydantic",
+    "requests",
+    "jsonschema",
+    "fastapi",
+    "uvicorn"
+]
+
+[project.scripts]
+qwen-extract = "src.main:main"

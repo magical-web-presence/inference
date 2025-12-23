@@ -1,0 +1,8 @@
+llama-cpp-python
+huggingface_hub
+pydantic
+requests
+jsonschema
+fastapi
+uvicorn
+httpx

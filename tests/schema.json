@@ -1,0 +1,109 @@
+{
+    "type": "object",
+    "properties": {
+        "topical_map": {
+            "type": "string",
+            "description": "An extensive topical map about the keyword."
+        },
+        "title": {
+            "type": "string",
+            "description": "A catchy, SEO-optimized title for the article."
+        },
+        "subtitle": {
+            "type": "string",
+            "description": "A supporting subtitle or hook."
+        },
+        "content": {
+            "type": "string",
+            "description": "The full body of the article formatted in Markdown or HTML. Humanized form, stripped from ai-like talk."
+        },
+        "summary": {
+            "type": "string",
+            "description": "A 2-3 sentence summary of the article."
+        },
+        "category": {
+            "type": "string",
+            "description": "Niche related category of the blog post."
+        },
+        "tags": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "List of relevant SEO tags, must be directly relevant to the niche"
+        },
+        "images": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "name_uuid ids of the used images if any. do not add any suffix here."
+        },
+        "external_links": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "List of outbound full URLs referenced in the text that are not in the articles array."
+        },
+        "internal_links": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "List of internal full URLs referenced in the text, linking to the website."
+        },
+        "network_links": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "List of full URLs of articles referenced in the text, other than our own website."
+        },
+        "faq": {
+            "type": "array",
+            "description": "List FAQ items used in the post (if any)",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "question": {
+                        "type": "string",
+                        "description": "Casual question about the topic"
+                    },
+                    "answer": {
+                        "type": "string",
+                        "description": "Proper response to the question."
+                    }
+                },
+                "propertyOrdering": [
+                    "question",
+                    "answer"
+                ],
+                "required": []
+            }
+        }
+    },
+    "propertyOrdering": [
+        "topical_map",
+        "title",
+        "subtitle",
+        "content",
+        "summary",
+        "category",
+        "tags",
+        "images",
+        "external_links",
+        "internal_links",
+        "network_links",
+        "faq"
+    ],
+    "required": [
+        "topical_map",
+        "title",
+        "subtitle",
+        "content",
+        "summary",
+        "category",
+        "tags"
+    ]
+}

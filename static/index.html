@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qwen3 API Service</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin-top: 30px;
+            margin-bottom: 50px;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid #eee;
+            font-weight: bold;
+        }
+
+        textarea {
+            font-family: "Cascadia Code", "Courier New", Courier, monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: #212529;
+            color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .status-badge {
+            font-size: 0.8rem;
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+
+        .config-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-range {
+            height: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0">Qwen3 API Service</h1>
+            <div id="status-container">
+                <span id="status-badge" class="status-badge bg-secondary text-white">Checking status...</span>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">Model Management</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="config-label">Available Models</label>
+                            <select id="model-select" class="form-select form-select-sm mb-2"></select>
+                            <div class="d-grid gap-2">
+                                <button onclick="loadModel()" class="btn btn-primary btn-sm">Load Model</button>
+                                <button onclick="unloadModel()" class="btn btn-outline-danger btn-sm">Unload Current</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Inference Config</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="config-label">Preset</label>
+                            <select id="preset-select" class="form-select form-select-sm" onchange="applyPreset()">
+                                <option value="default">Default Chat</option>
+                                <option value="parsing">Document Parsing</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="thinking-toggle">
+                                <label class="form-check-label config-label" for="thinking-toggle">Thinking Mode</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="config-label d-flex justify-content-between">
+                                Temperature <span id="temp-val">0.7</span>
+                            </label>
+                            <input type="range" class="form-range" min="0" max="2" step="0.1" value="0.7" id="temp-range" oninput="updateVal('temp')">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="config-label d-flex justify-content-between">
+                                Top P <span id="top_p-val">0.8</span>
+                            </label>
+                            <input type="range" class="form-range" min="0" max="1" step="0.05" value="0.8" id="top_p-range" oninput="updateVal('top_p')">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="config-label">Max Tokens</label>
+                            <input type="number" class="form-control form-control-sm" id="max_tokens" value="2048">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="config-label">Repeat Penalty</label>
+                            <input type="number" class="form-control form-control-sm" id="repeat_penalty" value="1.1" step="0.1">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="config-label">Presence Penalty</label>
+                            <input type="number" class="form-control form-control-sm" id="presence_penalty" value="1.5" step="0.1">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">Prompt</div>
+                    <div class="card-body">
+                        <textarea id="prompt" class="form-control mb-3" rows="5" placeholder="Enter your prompt here..."></textarea>
+
+                        <div class="mb-3">
+                            <label class="config-label">JSON Schema (Optional)</label>
+                            <textarea id="schema" class="form-control" rows="3" placeholder='{"type": "object", "properties": {"answer": {"type": "string"}}}'></textarea>
+                        </div>
+
+                        <div class="d-grid">
+                            <button id="run-btn" onclick="runInference()" class="btn btn-success">Run Inference</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        Result
+                        <button class="btn btn-link btn-sm p-0 text-decoration-none" onclick="clearResult()">Clear</button>
+                    </div>
+                    <div class="card-body">
+                        <pre id="result">Results will appear here...</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateVal(id) {
+            document.getElementById(id + "-val").innerText = document.getElementById(id + "-range").value;
+        }
+
+        function applyPreset() {
+            const preset = document.getElementById("preset-select").value;
+            const promptArea = document.getElementById("prompt");
+            const tempRange = document.getElementById("temp-range");
+            const topPRange = document.getElementById("top_p-range");
+            const repeatPenalty = document.getElementById("repeat_penalty");
+            const presencePenalty = document.getElementById("presence_penalty");
+            const thinkingToggle = document.getElementById("thinking-toggle");
+
+            if (preset === "parsing") {
+                thinkingToggle.checked = false;
+                tempRange.value = 0.2;
+                topPRange.value = 0.95;
+                repeatPenalty.value = 1.1;
+                presencePenalty.value = 0.0;
+                promptArea.value = "DOCUMENT TO ANALYZE:\n[PASTE DOCUMENT HERE]\n\n--- \n\nTASK: Based on the document above, extract all information into the requested JSON format. Ensure the 'content' field includes the ENTIRE article body and the 'topical_map' includes the full list of concepts. Follow all field descriptions strictly.";
+            } else {
+                thinkingToggle.checked = false;
+                tempRange.value = 0.7;
+                topPRange.value = 0.8;
+                repeatPenalty.value = 1.1;
+                presencePenalty.value = 1.5;
+                promptArea.value = "";
+            }
+
+            updateVal("temp");
+            updateVal("top_p");
+        }
+
+        async function updateStatus() {
+            try {
+                const res = await fetch("/status");
+                const data = await res.json();
+                const badge = document.getElementById("status-badge");
+
+                if (data.loaded_model) {
+                    badge.innerText = "Loaded: " + data.loaded_model;
+                    badge.className = "status-badge bg-success text-white";
+                } else {
+                    badge.innerText = "No model loaded";
+                    badge.className = "status-badge bg-warning text-dark";
+                }
+
+                const select = document.getElementById("model-select");
+                const currentVal = select.value;
+                select.innerHTML = "";
+                data.available_models.forEach(m => {
+                    const opt = document.createElement("option");
+                    opt.value = m;
+                    opt.innerText = m;
+                    if (m === data.loaded_model) opt.selected = true;
+                    select.appendChild(opt);
+                });
+                if (!select.value && currentVal) select.value = currentVal;
+            } catch (e) {
+                console.error("Status check failed", e);
+            }
+        }
+
+        async function loadModel() {
+            const modelName = document.getElementById("model-select").value;
+            if (!modelName) return alert("Select a model first");
+
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = "Loading...";
+
+            try {
+                const res = await fetch("/load", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ model_name: modelName })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    updateStatus();
+                } else {
+                    alert("Error: " + data.detail);
+                }
+            } catch (e) {
+                alert("Failed to connect to server");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = originalText;
+            }
+        }
+
+        async function unloadModel() {
+            const res = await fetch("/unload", { method: "POST" });
+            await res.json();
+            updateStatus();
+        }
+
+        async function runInference() {
+            const prompt = document.getElementById("prompt").value;
+            if (!prompt) return alert("Enter a prompt");
+
+            const runBtn = document.getElementById("run-btn");
+            const resultPre = document.getElementById("result");
+
+            const config = {
+                thinking: document.getElementById("thinking-toggle").checked,
+                temperature: parseFloat(document.getElementById("temp-range").value),
+                top_p: parseFloat(document.getElementById("top_p-range").value),
+                max_tokens: parseInt(document.getElementById("max_tokens").value),
+                repeat_penalty: parseFloat(document.getElementById("repeat_penalty").value),
+                presence_penalty: parseFloat(document.getElementById("presence_penalty").value)
+            };
+
+            let schema = null;
+            const schemaStr = document.getElementById("schema").value.trim();
+            if (schemaStr) {
+                try {
+                    schema = JSON.parse(schemaStr);
+                } catch (e) {
+                    return alert("Invalid JSON Schema");
+                }
+            }
+
+            runBtn.disabled = true;
+            runBtn.innerText = "Generating...";
+            resultPre.innerText = "Processing...";
+
+            try {
+                const res = await fetch("/inference", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt, config, schema })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    resultPre.innerText = typeof data.result === "object"
+                        ? JSON.stringify(data.result, null, 2)
+                        : data.result;
+                } else {
+                    resultPre.innerText = "Error: " + data.detail;
+                }
+            } catch (e) {
+                resultPre.innerText = "Connection error";
+            } finally {
+                runBtn.disabled = false;
+                runBtn.innerText = "Run Inference";
+            }
+        }
+
+        function clearResult() {
+            document.getElementById("result").innerText = "Results will appear here...";
+        }
+
+        updateStatus();
+        setInterval(updateStatus, 5000);
+    </script>
+</body>
+
+</html>
